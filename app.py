@@ -43,7 +43,7 @@ with st.sidebar:
         st.session_state.confirm_quit = False
 
     if not st.session_state.confirm_quit:
-        if st.button("🛑 Quit app"):
+        if st.button("⏻ Quit app"):
             st.session_state.confirm_quit = True
             st.rerun()
     else:
