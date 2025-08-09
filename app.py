@@ -118,7 +118,7 @@ if user_input:
             # Render to UI
             st.markdown(answer)
             if sources:
-                with st.expander("Sources", expanded=True):
+                with st.expander("Sources", expanded=False):
                     for i, s in enumerate(sources, 1):
                         st.markdown(f"**{i}. {s['ref']}**")
                         st.markdown(f"`{s['filename']}`")
