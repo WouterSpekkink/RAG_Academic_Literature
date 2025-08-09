@@ -60,6 +60,18 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("**Log file:**")
     st.code(st.session_state.answers_path, language="text")
+    # Download button
+    try:
+        with open(st.session_state.answers_path, "r", encoding="utf-8") as f:
+            data = f.read()
+        st.download_button(
+            label="⬇️ Download log",
+            data=data,
+            file_name=os.path.basename(st.session_state.answers_path),
+            mime="text/plain",
+        )
+    except FileNotFoundError:
+        st.caption("Log file not created yet.")
     st.caption("Each Q&A is appended here.")
 
 # ----------------------------

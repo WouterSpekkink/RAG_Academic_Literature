@@ -32,7 +32,7 @@ ANSWER_MODEL = "gpt-4o"        # main answering model
 UTILITY_MODEL = "gpt-4o-mini"  # cheap/fast for query expansion + rerank
 
 # Retrieval knobs
-K_FINAL = 8                 # number of chunks to keep after rerank/compress
+K_FINAL = 1                 # number of chunks to keep after rerank/compress
 K_MMR = 40                  # wide fetch for MMR recall
 MMR_LAMBDA = 0.1            # lower -> more diversity
 N_EXPANSIONS = 4            # multi-query variants to union with original
@@ -181,9 +181,30 @@ def llm_rerank(question: str, docs: List[Document], top_n: int = 12) -> List[Doc
 # ----------------------------
 # Formatting and sources
 # ----------------------------
+def _fmt_citation(m: dict) -> str:
+    def c(x): return (x or "").replace("{","").replace("}","").replace("\\","").replace("/","")
+    if m.get("ENTRYTYPE") == "article":
+        return f"{c(m.get('author',''))} ({m.get('year','')}). {c(m.get('title',''))}. {c(m.get('journal',''))}, {c(m.get('volume',''))}({c(m.get('number',''))}), {c(m.get('pages',''))}."
+    if m.get("ENTRYTYPE") == "book":
+        author = c(m.get("author", m.get("editor", "NA")))
+        return f"{author} ({m.get('year','')}). {c(m.get('title',''))}. {c(m.get('address',''))}: {c(m.get('publisher',''))}."
+    if m.get("ENTRYTYPE") == "incollection":
+        return f"{c(m.get('author',''))} ({m.get('year','')}). {c(m.get('title',''))}. In {c(m.get('editor',''))} (Eds.), {c(m.get('booktitle',''))}, {c(m.get('pages',''))}."
+    # fallback
+    return f"{c(m.get('author',''))} ({m.get('year','')}). {c(m.get('title',''))}."
+
 def format_docs(docs: List[Document]) -> str:
-    """Join chunks with minimal separators. We keep source info only for display."""
-    return "\n\n".join(d.page_content for d in docs)
+    blocks = []
+    for i, d in enumerate(docs, 1):
+        cite = _fmt_citation(d.metadata)
+        fname = os.path.basename(d.metadata.get("source", "unknown"))
+        blocks.append(
+            f"=== SOURCE {i} ===\n"
+            f"Citation: {cite}\n"
+            f"File: {fname}\n"
+            f"Passage:\n{d.page_content}\n"
+        )
+    return "\n".join(blocks)
 
 def _cleanup(s: str) -> str:
     return (s or "").replace("{", "").replace("}", "").replace("\\", "").replace("/", "")
@@ -216,15 +237,17 @@ def get_sources(docs: List[Document]) -> List[dict]:
 # ----------------------------
 SYSTEM_TEMPLATE = """
 You are a knowledgeable professor working in academia.
-Answer ONLY from the provided context. If the answer is not in the context, say you don't know.
+
+Use ONLY the provided context to answer. If the context is clearly unrelated or missing the key facts, say you don't know.
+If the context is partially relevant, answer what you can from it and explicitly note any gaps.
+
+Context is provided as multiple SOURCE blocks with a Citation, File, and Passage. Cite in-text (Author, Year) and include a short APA-style bibliography using the supplied citation lines. If specific citation fields are missing, still answer and include whatever citation information is available.
 
 Chat history (may be empty):
 {chat_history}
 
 Context:
 {context}
-
-Write as an academic text. Use APA-style in-text citations and then provide a short APA-style bibliography.
 """
 
 prompt = ChatPromptTemplate.from_messages([
