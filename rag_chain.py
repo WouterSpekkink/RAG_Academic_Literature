@@ -32,7 +32,7 @@ ANSWER_MODEL = "gpt-4o"        # main answering model
 UTILITY_MODEL = "gpt-4o-mini"  # cheap/fast for query expansion + rerank
 
 # Retrieval knobs
-K_FINAL = 1                 # number of chunks to keep after rerank/compress
+K_FINAL = 10                # number of chunks to keep after rerank/compress
 K_MMR = 40                  # wide fetch for MMR recall
 MMR_LAMBDA = 0.1            # lower -> more diversity
 N_EXPANSIONS = 4            # multi-query variants to union with original
