@@ -1,0 +1,10 @@
+bibtexparser        1.4.3
+httptools           0.6.4
+langchain-chroma    0.2.5
+langchain-community 0.3.27
+langchain-openai    0.3.28
+lark                1.2.2
+streamlit           1.48.0
+uvloop              0.21.0
+watchfiles          1.1.0
+websockets          15.0.1
