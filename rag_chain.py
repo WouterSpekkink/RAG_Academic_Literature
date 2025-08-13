@@ -28,8 +28,8 @@ COLLECTION_NAME = "papers"
 EMBED_MODEL = "text-embedding-3-large"
 
 # LLMs
-ANSWER_MODEL = "gpt-4o"        # main answering model
-UTILITY_MODEL = "gpt-4o-mini"  # cheap/fast for query expansion + rerank
+ANSWER_MODEL = "gpt-5"        # main answering model
+UTILITY_MODEL = "gpt-5"  
 
 # Retrieval knobs
 K_FINAL = 10                # number of chunks to keep after rerank/compress
@@ -66,8 +66,8 @@ base_retriever = db.as_retriever(
 )
 
 # Utility & answer models
-llm_util = ChatOpenAI(model=UTILITY_MODEL, temperature=0)
-llm_answer = ChatOpenAI(model=ANSWER_MODEL, temperature=0)
+llm_util = ChatOpenAI(model=UTILITY_MODEL)
+llm_answer = ChatOpenAI(model=ANSWER_MODEL)
 
 # Light compression (after rerank)
 redundancy_filter = EmbeddingsRedundantFilter(embeddings=embeddings)
